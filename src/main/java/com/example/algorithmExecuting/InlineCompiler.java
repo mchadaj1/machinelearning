@@ -4,10 +4,6 @@ package com.example.algorithmExecuting;
  * Created by mateusz on 18.05.16.
  */
 
-/**
- * Created by mateusz on 17.05.16.
- */
-
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
@@ -28,37 +24,15 @@ import static java.nio.file.StandardOpenOption.CREATE;
 
 public class InlineCompiler {
 
-
-    public static Class<?> getAgent(Map<String, String> replaces, OutputStream outputStream) {
-
+    public static Class<?> getAgent(Map<String, String> replaces, OutputStream outputStream) throws NoHunterClassException {
         String templateFileName = new BigInteger(256,new Random()).toString(32).substring(2,27);
         templateFileName = "a"+templateFileName;
-        Path agentSchema = Paths.get("methodagents/AgentSchema.java");
-        try {
-            String fileContent = new String(Files.readAllBytes(agentSchema));
-            fileContent = fileContent.replace("#ClassName", templateFileName);
-            for(Map.Entry<String, String> entry : replaces.entrySet()) {
-                if(entry.getValue() != null) {
-                    fileContent = fileContent.replace(entry.getKey(), entry.getValue());
-                } else {
-                    fileContent = fileContent.replace(entry.getKey(), " ");
-                }
-
-            }
-
-            OutputStream file = Files.newOutputStream(Paths.get("methodagents/" + templateFileName + ".java"),CREATE);
-            //Path newFile = Paths.get("methodagents/" + templateFileName);
-            file.write(fileContent.getBytes());
-            outputStream.write(new String("wygenerowany kod klasy:\n" + fileContent).getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        prepareMethodFile(templateFileName, replaces, outputStream);
         File fileToCompile = new File("methodagents/" + templateFileName + ".java");
+
+
         if (fileToCompile.getParentFile().exists() || fileToCompile.getParentFile().mkdirs()) {
-
             try {
-//
-
                 /** Compilation Requirements *********************************************************************************************/
                 DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
                 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -88,33 +62,56 @@ public class InlineCompiler {
 
                     // Load the class from the classloader by name....
                     Class<?> loadedClass = classLoader.loadClass(templateFileName);
-
-                    Files.delete(Paths.get("methodagents/" + templateFileName + ".java"));
-                    Files.delete(Paths.get("methodagents/" + templateFileName + ".class"));
                     return loadedClass;
-                    // Create a new instance...
 
                     /************************************************************************************************* Load and execute **/
                 } else {
                     for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-//                        System.out.format("Error on line %d in %s%n",
-//                                diagnostic.getLineNumber(),
-//                                diagnostic.getSource().toUri());
-                        outputStream.write(new String("Error on line " + diagnostic.getLineNumber() + " in " + diagnostic.getSource().toUri() + "\n").getBytes());
-                                            }
+                        outputStream.write(("Error on line " + diagnostic.getLineNumber() + " in " + diagnostic.getSource().toUri() + "\n").getBytes());
+                    }
                 }
                 fileManager.close();
             } catch (IOException | ClassNotFoundException exp) {
                 exp.printStackTrace();
                 try {
-                    outputStream.write(new String(exp.getStackTrace().toString()).getBytes());
+                    outputStream.write(exp.getStackTrace().toString().getBytes());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return null;
+                throw new NoHunterClassException();
             }
         }
-        return null;
+        throw new NoHunterClassException();
     }
+
+    /**
+     * Funkcja przygotowuje plik tymczasowy do wygenerowania klasy
+     * @param templateFileName nazwa pliku
+     * @param replaces mapa zmiennych do zmiany w pliku
+     * @param outputStream OutputStream do pliku z logiem
+     * @throws NoHunterClassException w przypadku, gdy nie można utworzyć klasy Huntera.
+     */
+    private static void prepareMethodFile(String templateFileName, Map<String, String> replaces, OutputStream outputStream) throws NoHunterClassException {
+        try {
+
+            Path agentSchema = Paths.get("methodagents/AgentSchema.java");
+            String fileContent = new String(Files.readAllBytes(agentSchema));
+            fileContent = fileContent.replace("#ClassName", templateFileName);
+            for(Map.Entry<String, String> entry : replaces.entrySet()) {
+                if(entry.getValue() != null) {
+                    fileContent = fileContent.replace(entry.getKey(), entry.getValue());
+                } else {
+                    fileContent = fileContent.replace(entry.getKey(), " ");
+                }
+            }
+            OutputStream file = Files.newOutputStream(Paths.get("methodagents/" + templateFileName + ".java"),CREATE);
+            file.write(fileContent.getBytes());
+            outputStream.write(("wygenerowany kod klasy:\n" + fileContent).getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new NoHunterClassException();
+        }
+    }
+
 
 }

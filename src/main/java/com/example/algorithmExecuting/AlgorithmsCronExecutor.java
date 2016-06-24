@@ -9,9 +9,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,138 +22,249 @@ import java.util.Random;
 @Service("algorithmExecutor")
 public class AlgorithmsCronExecutor {
 
-    AlgorithmExecutionRepository algorithmExecutionRepository;
-    ProblemConfigurationRepository problemConfigurationRepository;
-    ProblemParamValueRepository problemParamValueRepository;
-    MethodParamValueRepository methodParamValueRepository;
-    StatisticRepository statisticRepository;
+    private final AlgorithmExecutionRepository algorithmExecutionRepository;
+    private final ProblemConfigurationRepository problemConfigurationRepository;
+    private final ProblemParamValueRepository problemParamValueRepository;
+    private final MethodParamValueRepository methodParamValueRepository;
+    private final StatisticRepository statisticRepository;
+    private final MethodConfigurationRepository methodConfigurationRepository;
 
-    MethodConfigurationRepository methodConfigurationRepository;
+    private OutputStream loggingStream;
+    private AlgorithmExecution algorithmExecution;
+
     @Autowired
-    public void setAlgorithmExecutionRepository(AlgorithmExecutionRepository algorithmExecutionRepository) {
+    public AlgorithmsCronExecutor(AlgorithmExecutionRepository algorithmExecutionRepository,
+                                  ProblemConfigurationRepository problemConfigurationRepository,
+                                  ProblemParamValueRepository problemParamValueRepository,
+                                  MethodParamValueRepository methodParamValueRepository,
+                                  StatisticRepository statisticRepository,
+                                  MethodConfigurationRepository methodConfigurationRepository) {
         this.algorithmExecutionRepository = algorithmExecutionRepository;
-    }
-    @Autowired
-    public void setProblemConfigurationRepository(ProblemConfigurationRepository problemConfigurationRepository) {
         this.problemConfigurationRepository = problemConfigurationRepository;
-    }
-    @Autowired
-    public void setProblemParamValueRepository(ProblemParamValueRepository problemParamValueRepository) {
         this.problemParamValueRepository = problemParamValueRepository;
-    }
-    @Autowired
-    public void setMethodParamValueRepository(MethodParamValueRepository methodParamValueRepository) {
         this.methodParamValueRepository = methodParamValueRepository;
-    }
-    @Autowired
-    public void setStatisticRepository(StatisticRepository statisticRepository) {
         this.statisticRepository = statisticRepository;
-    }
-    @Autowired
-    public void setMethodConfigurationRepository(MethodConfigurationRepository methodConfigurationRepository) {
         this.methodConfigurationRepository = methodConfigurationRepository;
     }
 
     /**
-     * Funkcja wybierająca symulacje do wykonania z bazy danych
+     * Funkcja wybierająca symulacje do wykonania z bazy danych, tworzy plik do logowania przebiegu
+     * dla użytkownika i uruchamia eksperymenty.
      */
     protected void lookForPendingTask() {
 
         List<AlgorithmExecution> algorithmExecutions = algorithmExecutionRepository.findByPendingTrueAndCompletedFalse();
-
-
         if(!algorithmExecutions.isEmpty()) {
-            String filename = new BigInteger(256, new Random()).toString(32).substring(2,20)+".txt";
-            OutputStream outputStream;
             try {
-                Path newPath = Files.createFile(Paths.get("executionslogs/" + filename));
-                outputStream = Files.newOutputStream(newPath);
+                algorithmExecution = algorithmExecutions.get(0);
+                String filename = new BigInteger(256, new Random()).toString(32).substring(2,20)+".txt";
+                loggingStream = getOutputStreamForLogging(filename);
+                setAlgorithmPending(filename);
+                logExecutionStarted();
+                Map<String, String> attributes = getProblemAttributes();
+                Map<String, String> methodAttributes = getMethodAttributes();
+                Map<String, String> replaces = getReplacesMap();
 
-            outputStream.write(new String("Wybrano polecenie wykonania algorytmu o id " + algorithmExecutions.get(0).getId().toString() + "\n").getBytes());
-            Map<String,String> attributes = new HashMap<String, String>();
-            Map<String, String> methodAttributes = new HashMap<>();
+                Class<?> hunterClass = InlineCompiler.getAgent(replaces, loggingStream);
 
+                runExperiments(attributes, methodAttributes, hunterClass);
 
-            ProblemConfiguration problemConfiguration = problemConfigurationRepository.findById(algorithmExecutions.get(0).problemConfiguration.getId());
-            List<ProblemParamValue> problemParamValues = problemParamValueRepository.findByProblemConfigurationId(problemConfiguration.getId());
-            List<MethodParamValue> methodParamValues = methodParamValueRepository.findByMethodConfigurationId(algorithmExecutions.get(0).getMethodConfigurationId());
-                outputStream.write(new String("Rozpoczęto ładowanie argumentów: \n").getBytes());
-                outputStream.write(new String("Argumenty metody:\n").getBytes());
-            for (MethodParamValue methodParamValue : methodParamValues) {
-                outputStream.write(new String(methodParamValue.method_param.getName() +" "+methodParamValue.getValue()).getBytes());
-                methodAttributes.put(methodParamValue.method_param.getName(), methodParamValue.getValue());
-            }
-                outputStream.write(new String("Argumenty problemu:\n").getBytes());
-            for(ProblemParamValue problemParamValue : problemParamValues) {
-                outputStream.write(new String(problemParamValue.problem_param.getName()+" "+problemParamValue.getValue() + "\n").getBytes());
-                attributes.put(problemParamValue.problem_param.getName(),problemParamValue.getValue());
-            }
-
-            algorithmExecutions.get(0).setPending(false);
-            algorithmExecutions.get(0).setFilename(filename);
-            algorithmExecutionRepository.save(algorithmExecutions.get(0));
-
-            MethodConfiguration methodConfiguration = methodConfigurationRepository.findById(algorithmExecutions.get(0).getMethodConfigurationId());
-            Method method = methodConfiguration.getMethod();
-                Map<String, String> replaces = new HashMap<>();
-                replaces.put("#Globals",method.getGlobals());
-                replaces.put("#nextStepMethod",method.getCode());
-                replaces.put("#Imports",method.getImports());
-                replaces.put("#Constructor",method.getConstructorcode());
-                replaces.put("#finishGame",method.getFinishgame());
-            Class<?> hunterClass = InlineCompiler.getAgent(replaces, outputStream);
-            if(hunterClass == null) {
-                outputStream.write(new String("Nie udało się utworzyć klasy łowcy\n").getBytes());
-                outputStream.close();
-                algorithmExecutions.get(0).setCompleted(true);
-                algorithmExecutionRepository.save(algorithmExecutions.get(0));
-                return;
-            }
-                int experiments = Integer.parseInt(attributes.get("experiments"));
-
-            for(int i = 1; i <= experiments; i++) {
-                ExperimentRunner experimentRunner = new ExperimentRunner(attributes, methodAttributes, hunterClass, outputStream);
+                finishWithSuccess();
+                removeTemporaryFiles(hunterClass.getName());
+            } catch (NumberFormatException e) {
                 try {
-                    experimentRunner.init();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                }catch(NumberFormatException ex) {
-                    outputStream.write(new String("Wystąpił problem z wartością parametru\n").getBytes());
+                    log("Nie podano liczby eksperymentów do wykonania\n");
+                    loggingStream.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
-                experimentRunner.run();
-                outputStream.write(new String("Zakończono wykonywanie eksperymentu nr " + i+"\n").getBytes());
-                List<Statistic> statistics = experimentRunner.getStatistics();
-                final int a = i;
-                statistics.stream()
-                        .forEach(b -> b.setExperiment_number(a));
-                statistics.stream()
-                        .forEach(b -> b.setExecutionId(algorithmExecutions.get(0).getId()));
-
-                statisticRepository.save(statistics);
-            }
-
-            algorithmExecutions.get(0).setCompleted(true);
-            algorithmExecutionRepository.save(algorithmExecutions.get(0));
-            outputStream.write(new String("Zakończono wykonywanie algorytmu\n").getBytes());
-            outputStream.close();
-
+                finish();
             } catch (IOException e) {
                 e.printStackTrace();
-                algorithmExecutions.get(0).setCompleted(true);
-                algorithmExecutionRepository.save(algorithmExecutions.get(0));
-                return;
+                finish();
+            } catch (NoHunterClassException e) {
+                try {
+                    log("Nie udało się utworzyć klasy łowcy\n");
+                    loggingStream.close();
+                    finish();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
-            catch(NumberFormatException ex) {
-
-            }
-
-
         }
-
-        else
-            System.out.println("Pusto, nie ma zadań do wykonania");
-
     }
+
+    /**
+     * Funkcja tworzy OutputStream do logowania przebiegu wykonania dla użytkownika w pliku o podanej nazwie.
+     * @param fileName Nazwa nowo utworzonego pliku.
+     * @return OutputStream do logowania.
+     */
+    private OutputStream getOutputStreamForLogging(String fileName) throws IOException {
+            Path path = Files.createFile(Paths.get("executionslogs/" + fileName));
+            return Files.newOutputStream(path);
+    }
+
+    /**
+     * Funkcja wczytuje atrybuty problemu.
+     * @return Mapa atrybutów.
+     * @throws IOException W przypadku wystąpienia problemu z outputstreamem do logowania.
+     */
+    private Map<String, String> getProblemAttributes() throws IOException {
+        Map<String, String> attributes = new HashMap<>();
+
+        ProblemConfiguration problemConfiguration = problemConfigurationRepository
+                .findById(algorithmExecution.getProblemConfigurationId());
+        List<ProblemParamValue> problemParamValues = problemParamValueRepository
+                .findByProblemConfigurationId(problemConfiguration.getId());
+
+        log("Argumenty problemu:\n");
+        for(ProblemParamValue problemParamValue : problemParamValues) {
+            log((problemParamValue.problem_param
+                    .getName() + " " + problemParamValue.getValue() + "\n"));
+            attributes.put(problemParamValue.problem_param.getName(),problemParamValue.getValue());
+        }
+        return attributes;
+    }
+
+    /**
+     * Funkcja wczytuje atrybuty metody.
+     * @return Mapa atrybutów.
+     * @throws IOException W przypadku wystąpienia problemu z outputstreamem do logowania.
+     */
+    private Map<String, String> getMethodAttributes() throws IOException {
+        Map<String, String> attributes = new HashMap<>();
+
+        List<MethodParamValue> methodParamValues = methodParamValueRepository
+                .findByMethodConfigurationId(algorithmExecution.getMethodConfigurationId());
+        log("Argumenty metody:\n");
+        for (MethodParamValue methodParamValue : methodParamValues) {
+            log((methodParamValue.method_param.getName() + " " + methodParamValue.getValue() + "\n"));
+            attributes.put(methodParamValue.method_param.getName(), methodParamValue.getValue());
+        }
+        return attributes;
+    }
+
+    /**
+     * Funkcja wczytuje mapę znaczników do zamiany w pliku z klasą agenta.
+     * @return Mapa atrybutów.
+     */
+    private Map<String, String> getReplacesMap() {
+        MethodConfiguration methodConfiguration = methodConfigurationRepository
+                .findById(algorithmExecution.getMethodConfigurationId());
+        Method method = methodConfiguration.getMethod();
+        Map<String, String> replaces = new HashMap<>();
+        replaces.put("#Globals",method.getGlobals());
+        replaces.put("#nextStepMethod",method.getCode());
+        replaces.put("#Imports",method.getImports());
+        replaces.put("#Constructor",method.getConstructorcode());
+        replaces.put("#finishGame",method.getFinishgame());
+        return replaces;
+    }
+
+    /**
+     * Funkcja zapisuje statystyki w bazie danych.
+     * @param expNumber numer eksperymentu.
+     * @param statistics lista statystyk.
+     */
+    private void saveStatistics(int expNumber, List<Statistic> statistics) {
+
+        final int experimentNumber = expNumber;
+        statistics.stream()
+                .forEach(b -> b.setExperiment_number(experimentNumber));
+        statistics.stream()
+                .forEach(b -> b.setExecutionId(algorithmExecution.getId()));
+
+        statisticRepository.save(statistics);
+    }
+
+    /**
+     * Funkcja wywołuje zapisanie zakończenia działania algorytmu oraz loguje o zakończeniu
+     * i zamyka outputStream do logowania.
+     * @throws IOException W przypadku wystąpienia problemu z outputstreamem do logowania.
+     */
+    private void finishWithSuccess() throws IOException {
+        finish();
+        log("Zakończono wykonywanie algorytmu\n");
+        loggingStream.close();
+    }
+
+    /**
+     * Funkcja zapisuje zakończenie działania algorytmu.
+     */
+    private void finish() {
+        algorithmExecution.setCompleted(true);
+        algorithmExecutionRepository.save(algorithmExecution);
+    }
+
+    /**
+     * Funkcja zmienia status wykonania algorytmu na oczekujący oraz ustawia nazwę pliku z logiem przebiegu.
+     * @param fileName nazwa pliku.
+     */
+    private void setAlgorithmPending(String fileName) {
+        algorithmExecution.setPending(false);
+        algorithmExecution.setFilename(fileName);
+        algorithmExecutionRepository.save(algorithmExecution);
+    }
+
+    /**
+     * Funkcja zapisuje do logu informację o rozpoczęciu wykonywania algorytmu i ładowania argumentów.
+     * @throws IOException W przypadku wystąpienia problemu z outputstreamem do logowania.
+     */
+    private void logExecutionStarted() throws IOException {
+        log(("Wybrano polecenie wykonania algorytmu o id "
+                + algorithmExecution.getId().toString() + "\n"));
+        log("Rozpoczęto ładowanie argumentów: \n");
+    }
+
+    /**
+     * Funkcja uruchamia wykonanie algorytmu.
+     * @param attributes Atrybuty problemu.
+     * @param methodAttributes Atrybuty metody.
+     * @param hunterClass Klasa łowcy
+     * @throws IOException W przypadku wystąpienia problemu z outputstreamem do logowania.
+     */
+    private void runExperiments(Map<String, String> attributes, Map<String, String> methodAttributes, Class hunterClass) throws IOException {
+        int experiments = Integer.parseInt(attributes.get("experiments"));
+        ExperimentRunner experimentRunner;
+        for(int i = 1; i <= experiments; i++) {
+            experimentRunner = new ExperimentRunner(attributes, methodAttributes, hunterClass, loggingStream);
+            try {
+                experimentRunner.init();
+                experimentRunner.run();
+                log("Zakończono wykonywanie eksperymentu nr " + i + "\n");
+                saveStatistics(i, experimentRunner.getStatistics());
+            } catch (IllegalAccessException | InstantiationException e) {
+                log(e.getStackTrace().toString());
+                finish();
+            } catch(NumberFormatException ex) {
+                log("Wystąpił problem z wartością parametru\n");
+            }
+        }
+    }
+
+    /**
+     * Funkcja zapisuje podany string do logu.
+     * @param string String do zapisania
+     * @throws IOException W przypadku wystąpienia problemu z outputstreamem do logowania.
+     */
+    private void log(String string) throws IOException {
+        loggingStream.write(string.getBytes());
+    }
+    /**
+     * Funkcja usuwa pliki utworzone w celu stworzenia klasy.
+     * @param temporaryName Nazwa klasy tymczasowej.
+     * @throws IOException
+     */
+    private static void removeTemporaryFiles(String temporaryName) throws IOException {
+        Files.walkFileTree(Paths.get("methodagents/"), new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if(file.getFileName().toString().startsWith(temporaryName)) {
+                    Files.delete(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
 }

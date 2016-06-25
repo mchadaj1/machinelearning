@@ -1,9 +1,9 @@
 package com.example.hunterPreyPredator;
 
 
-import com.example.hunterPreyPredator.agents.Agent;
-import com.example.hunterPreyPredator.agents.AgentBase;
 import com.example.entities.Statistic;
+import com.example.hunterPreyPredator.agents.AgentBase;
+import com.example.hunterPreyPredator.exceptions.GameFinishedException;
 import com.example.hunterPreyPredator.map.MyMap;
 import com.example.hunterPreyPredator.map.Position;
 
@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by mateusz on 08.04.16.
@@ -22,16 +21,28 @@ import java.util.Map;
  */
 public class Simulation {
 
-   private int steps;
-
+    private int steps;
     private int preys;
     private int predators;
-    private int width = 10;
-    private int height = 10;
+    private int width;
+    private int height;
     private int preysleft;
+    private int range;
     private List<Statistic> statistics = new ArrayList<>();
     private OutputStream outputStream;
+    private List<AgentBase> agents;
+    private MyMap map;
 
+    /**
+     * Konstruktor klasy wykonującej pojedynczą symulację.
+     * @param steps Liczba kroków w symulacji.
+     * @param preys Liczba ofiar.
+     * @param predators Liczba drapieżników.
+     * @param width Szerokość mapy.
+     * @param height Wysokość mapy.
+     * @param outputStream Stream do logowania.
+     * @param range Widoczność łowcy na mapie.
+     */
     public Simulation(int steps, int preys, int predators, int width, int height, OutputStream outputStream, int range) {
         this.steps = steps;
         this.preys = preys;
@@ -43,133 +54,111 @@ public class Simulation {
         this.range = range;
     }
 
-
     public List<Statistic> getStatistics() {
         return statistics;
     }
 
-    private int range = 2;
-
-    private List<AgentBase> agents;
-
-    private MyMap map;
-
-
-
+    /**
+     * Funkcja inicjuje wartości początkowe symulacji.
+     * @param agents Lista agentów.
+     * @throws IOException W przypadku wystąpienia problemu z zapisem wykonania przebiegu.
+     */
     public void init(List<AgentBase> agents) throws IOException {
         this.agents = agents;
         for(AgentBase agent :agents) {
             agent.setActive(true);
         }
         map = new MyMap(width,height,range, outputStream);
-        map.init(preys,predators);
+        map.init(preys, predators);
         map.showMapInFile();
     }
+
+    /**
+     * Funkcja wykonuje symulację.
+     * @throws IOException W przypadku wystąpienia problemu z zapisem wykonania przebiegu.
+     */
     public void run() throws IOException {
-
-        for(int i = 1; i<= steps; i++) {
-
-            outputStream.write(new String("Próba przestawienia łowcy\n").getBytes());
-            AgentBase hunter = agents.get(0);
-            final Map<String, Object> mapInfo = map.getMapInfo(0);
-            Position wantedPosition = agents.get(0).nextStep(mapInfo);
-            if (map.prepareMove(hunter.getNumber(), wantedPosition)) {
-                map.insertNewPosition(hunter.getNumber(), wantedPosition);
-                outputStream.write(new String("Przestawiono " + hunter.getNumber() + " na pozycje " + wantedPosition + "\n").getBytes());
-            } else {
-                map.takeOldPosition(hunter.getNumber());
-            }
-
-            map.move();
-            Integer deleteAgentNumber = null;
-            if ((deleteAgentNumber = map.concludeStep(true)) != null) {
-                String agentType = agents.get(deleteAgentNumber).getType().toString();
-                statistics.add(new Statistic(deleteAgentNumber, i, agentType));
-                if (deleteAgentNumber == 0) {
-                    //System.out.println("Hunter deleted");
-                    agents.get(0).finishGame(map.getMapInfo(0));
-                    return;
-                } else {
-                    //System.out.println("Usunięto agenta nr " + deleteAgentNumber);
-
-                    agents.get(find(deleteAgentNumber)).setActive(false);
-                    preysleft--;
-                    if (preysleft == 0) {
-                        agents.get(0).finishGame(map.getMapInfo(0));
-                        statistics.add(new Statistic(-1, i, "all"));
-                        return;
-
-                    }
-
-                }
-
-            }
-            map.showMapInFile();
-
-            for (AgentBase agent : agents) {
-                if (agent.getNumber() != 0) {
-                    if (agent.isActive()) {
-                        outputStream.write(new String("Próba przestawienia agenta " + agent.getNumber() + "\n").getBytes());
-                        Position wantToStep = agent.nextStep(map.getMapInfo(agent.getNumber()));
-                        if (map.prepareMove(agent.getNumber(), wantToStep)) {
-                            map.insertNewPosition(agent.getNumber(), wantToStep);
-                            outputStream.write(new String("Przestawiono " + agent.getNumber() + " na pozycje " + wantToStep + "\n").getBytes());
-                        } else {
-                            map.takeOldPosition(agent.getNumber());
-                        }
-
+        AgentBase hunter = agents.get(0);
+        try {
+            for(int i = 1; i<= steps; i++) {
+                outputStream.write("Próba przestawienia łowcy\n".getBytes());
+                moveAgent(hunter);
+                map.move();
+                findDeletedAgent(i, true);
+                map.showMapInFile();
+                for (AgentBase agent : agents) {
+                    //hunter został już przestawiony
+                    if (agent.getNumber() != 0) {
+                        moveAgent(agent);
                     }
                 }
-            }
-            boolean noCollisions = false;
-            while (noCollisions == false) {
-                noCollisions = map.findCollisions();
-            }
-
-            map.move();
-
-            deleteAgentNumber = null;
-            if ((deleteAgentNumber = map.concludeStep(false)) != null) {
-                String agentType = agents.get(deleteAgentNumber).getType().toString();
-                statistics.add(new Statistic(deleteAgentNumber, i, agentType));
-                if (deleteAgentNumber == 0) {
-                    //System.out.println("Hunter deleted");
-                    agents.get(0).finishGame(map.getMapInfo(0));
-                    return;
-                } else {
-                    //System.out.println("Usunięto agenta nr " + deleteAgentNumber);
-
-                    agents.get(find(deleteAgentNumber)).setActive(false);
-                    preysleft--;
-                    if (preysleft == 0) {
-                        agents.get(0).finishGame(map.getMapInfo(0));
-                        statistics.add(new Statistic(-1, i, "all"));
-                        return;
-
-                    }
-
+                boolean noCollisions = map.findCollisions();
+                while (!noCollisions) {
+                    noCollisions = map.findCollisions();
                 }
+                map.move();
+                findDeletedAgent(i, false);
+                map.showMapInFile();
 
             }
-            map.showMapInFile();
-
+            agents.get(0).finishGame(map.getMapInfo(0));
+        } catch (GameFinishedException e) {
+            agents.get(0).finishGame(map.getMapInfo(0));
         }
-        agents.get(0).finishGame(map.getMapInfo(0));
     }
 
-
+    /**
+     * Funkcja zwraca numer agenta na liście.
+     * @param AgentNumber Numer agenta w klasie.
+     * @return Numer agenta na liście.
+     */
     public int find(int AgentNumber) {
-        for(int i = 0; i < agents.size(); i++) {
-            if(agents.get(i).getNumber() == AgentNumber && agents.get(i).isActive())
-                return i;
+        for (AgentBase agentBase : agents) {
+            if(agentBase.getNumber() == AgentNumber && agentBase.isActive())
+                return agents.indexOf(agentBase);
         }
         return -1;
     }
 
-//    public void printAgents() {
-//        for(int i = 0; i < agents.size(); i++) {
-//            if(agents.get(i).isActive())
-//                System.out.println(agents.get(i).getNumber());
-//        }
-//    }
+    /**
+     * Funkcja wyszukuje na mapie agentów do usunięcia.
+     * @param step Numer kroku.
+     * @param onlyHunter True, jeśli funkcja wywoływana jest po ruchu łowcy, false jeśli po ruchu reszty agentów.
+     * @throws IOException W przypadku wystąpienia problemu z zapisem logów.
+     */
+    private void findDeletedAgent(int step, boolean onlyHunter) throws IOException, GameFinishedException {
+        Integer deleteAgentNumber;
+        if ((deleteAgentNumber = map.concludeStep(onlyHunter)) != null) {
+            statistics.add(new Statistic(deleteAgentNumber, step, agents.get(deleteAgentNumber).getType().toString()));
+            if (deleteAgentNumber == 0) {
+                throw new GameFinishedException();
+            } else {
+                agents.get(find(deleteAgentNumber)).setActive(false);
+                preysleft--;
+                if (preysleft == 0) {
+                    statistics.add(new Statistic(-1, step, "all"));
+                    throw new GameFinishedException();
+                }
+            }
+        }
+    }
+
+    /**
+     * Funkcja wykonuje próbę przestawienia agenta na mapie.
+     * @param agent Agent.
+     * @throws IOException W przypadku wystąpienia problemu z zapisem logów.
+     */
+    private void moveAgent(AgentBase agent) throws IOException {
+        if (agent.isActive()) {
+            outputStream.write(("Próba przestawienia agenta " + agent.getNumber() + "\n").getBytes());
+            Position wantToStep = agent.nextStep(map.getMapInfo(agent.getNumber()));
+            if (map.prepareMove(agent.getNumber(), wantToStep)) {
+                map.insertNewPosition(agent.getNumber(), wantToStep);
+                outputStream.write(("Przestawiono " + agent.getNumber() + " na pozycje " + wantToStep + "\n").getBytes());
+            } else {
+                map.takeOldPosition(agent.getNumber());
+            }
+        }
+    }
+
 }

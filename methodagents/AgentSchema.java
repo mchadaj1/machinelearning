@@ -24,11 +24,6 @@ public class #ClassName extends com.example.hunterPreyPredator.agents.AgentBase 
     }
 
     @Override
-    public void getLastMoveEffect() {
-
-    }
-
-    @Override
     public AgentType getType() {
         return AgentType.HUNTER;
     }

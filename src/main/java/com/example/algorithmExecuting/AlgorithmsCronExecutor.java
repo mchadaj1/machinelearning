@@ -2,6 +2,7 @@ package com.example.algorithmExecuting;
 
 import com.example.hunterPreyPredator.ExperimentRunner;
 import com.example.entities.*;
+import com.example.hunterPreyPredator.exceptions.NoHunterClassException;
 import com.example.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,13 +62,10 @@ public class AlgorithmsCronExecutor {
                 loggingStream = getOutputStreamForLogging(filename);
                 setAlgorithmPending(filename);
                 logExecutionStarted();
-                Map<String, String> attributes = getProblemAttributes();
-                Map<String, String> methodAttributes = getMethodAttributes();
-                Map<String, String> replaces = getReplacesMap();
 
-                Class<?> hunterClass = InlineCompiler.getAgent(replaces, loggingStream);
+                Class<?> hunterClass = InlineCompiler.getAgent(getReplacesMap(), loggingStream);
 
-                runExperiments(attributes, methodAttributes, hunterClass);
+                runExperiments(getProblemAttributes(), getMethodAttributes(), hunterClass);
 
                 finishWithSuccess();
                 removeTemporaryFiles(hunterClass.getName());
@@ -86,10 +84,10 @@ public class AlgorithmsCronExecutor {
                 try {
                     log("Nie udało się utworzyć klasy łowcy\n");
                     loggingStream.close();
-                    finish();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
+                finish();
             }
         }
     }
@@ -223,7 +221,8 @@ public class AlgorithmsCronExecutor {
      * @param hunterClass Klasa łowcy
      * @throws IOException W przypadku wystąpienia problemu z outputstreamem do logowania.
      */
-    private void runExperiments(Map<String, String> attributes, Map<String, String> methodAttributes, Class hunterClass) throws IOException {
+    private void runExperiments(Map<String, String> attributes, Map<String, String> methodAttributes,
+                                Class hunterClass) throws IOException, NoHunterClassException {
         int experiments = Integer.parseInt(attributes.get("experiments"));
         ExperimentRunner experimentRunner;
         for(int i = 1; i <= experiments; i++) {
@@ -266,5 +265,4 @@ public class AlgorithmsCronExecutor {
             }
         });
     }
-
 }

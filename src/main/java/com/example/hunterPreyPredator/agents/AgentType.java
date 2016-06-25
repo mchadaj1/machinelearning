@@ -7,14 +7,14 @@ public enum AgentType {
     HUNTER,
     PREY,
     PREDATOR;
-    /*
-    returns true if one of the agents is hunter - they interact, hunter kills prey or predator eats hunter
+
+    /**
+     * Sprawdza, czy agenci ze sobą walczą.
+     * @param agentType Typ drugiego agenta.
+     * @return True, jeśli agenci ze sobą walczą (jeden z nich jest łowcą)
      */
     public boolean interacts(AgentType agentType) {
-        if(this != HUNTER && agentType != HUNTER) {
-            return false;
-        }
-        return true;
+        return !((this != HUNTER) && (agentType != HUNTER));
     }
 
 }

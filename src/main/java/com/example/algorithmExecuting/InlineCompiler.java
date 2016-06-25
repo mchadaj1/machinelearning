@@ -4,6 +4,8 @@ package com.example.algorithmExecuting;
  * Created by mateusz on 18.05.16.
  */
 
+import com.example.hunterPreyPredator.exceptions.NoHunterClassException;
+
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * Klasa kompilująca w locie klasę na podstawie kodu.
+ * http://stackoverflow.com/questions/21544446/how-do-you-dynamically-compile-and-load-external-java-classes
  */
 
 public class InlineCompiler {
@@ -91,7 +94,8 @@ public class InlineCompiler {
      * @param outputStream OutputStream do pliku z logiem
      * @throws NoHunterClassException w przypadku, gdy nie można utworzyć klasy Huntera.
      */
-    private static void prepareMethodFile(String templateFileName, Map<String, String> replaces, OutputStream outputStream) throws NoHunterClassException {
+    private static void prepareMethodFile(String templateFileName, Map<String, String> replaces,
+                                          OutputStream outputStream) throws NoHunterClassException {
         try {
 
             Path agentSchema = Paths.get("methodagents/AgentSchema.java");

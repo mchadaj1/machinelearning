@@ -1,11 +1,11 @@
 package com.example.hunterPreyPredator;
 
 
+import com.example.hunterPreyPredator.exceptions.NoHunterClassException;
 import com.example.hunterPreyPredator.agents.AgentBase;
 import com.example.hunterPreyPredator.agents.Predator;
 import com.example.hunterPreyPredator.agents.Prey;
 import com.example.entities.Statistic;
-import com.example.hunterPreyPredator.map.MyMap;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,23 +24,34 @@ import java.util.Map;
 public class ExperimentRunner {
 
 
-    private int preys = 8;
-    private int predators = 1;
-    private int simuls = 1;
-    private int width = 10;
-    private int height = 10;
-    private int range = 2;
-    private int steps = 50;
+    private int preys;
+    private int predators;
+    private int simuls;
+    private int width;
+    private int height;
+    private int range;
+    private int steps;
     private List<AgentBase> agents;
-    private MyMap myMap;
-    private Long problemConfigId;
-    private Long methodConfigId;
     private List<Statistic> statistics = new ArrayList<>();
     private Class<?> hunterClass;
     private OutputStream outputStream;
     private Map<String, String> methodAttributes;
+    private List<Simulation> simulations = new ArrayList<>(simuls);
 
-    public ExperimentRunner(Map<String, String> attributes, Map<String, String> methodAttributes, Class<?> hunterClass, OutputStream outputStream){
+    public List<Statistic> getStatistics() {
+        return statistics;
+    }
+
+    /**
+     * Konstruktor klasy wykonującej eksperymenty.
+     * @param attributes Atrybuty sterujące wykonaniem eksperymentu.
+     * @param methodAttributes Atrybuty sterujące przebiegiem metody.
+     * @param hunterClass Klasa łowcy.
+     * @param outputStream Outputstream do logowania.
+     * @throws NumberFormatException W przypadku niepoprawnej wartości jednego z parametrów.
+     */
+    public ExperimentRunner(Map<String, String> attributes, Map<String, String> methodAttributes, Class<?> hunterClass,
+                            OutputStream outputStream) throws NumberFormatException {
         this.hunterClass = hunterClass;
         this.outputStream = outputStream;
         preys = Integer.parseInt(attributes.get("preys"));
@@ -51,23 +62,24 @@ public class ExperimentRunner {
         range = Integer.parseInt(attributes.get("range"));
         steps = Integer.parseInt(attributes.get("steps"));
         this.methodAttributes = methodAttributes;
-    };
-
-    public List<Statistic> getStatistics() {
-        return statistics;
     }
 
-    private List<Simulation> simulations = new ArrayList<>(simuls);
 
-    public void init() throws IllegalAccessException, InstantiationException {
+
+    /**
+     * Funkcja ustawia wartości początkowe eksperymentu, tworzy agentów.
+     * @throws IllegalAccessException W przypadku braku dostępu do konstruktora klasy łowcy.
+     * @throws InstantiationException W przypadku braku konstruktora w klasie łowcy.
+     * @throws NoHunterClassException W przypadku, gdy nie uda się utworzyć klasy łowcy.
+     */
+    public void init() throws IllegalAccessException, InstantiationException, NoHunterClassException {
         agents = new ArrayList<>(predators+preys+1);
-        AgentBase hunter = null;
+        AgentBase hunter;
         try {
             hunter = (AgentBase) hunterClass.getDeclaredConstructor(Map.class).newInstance(methodAttributes);
-        } catch (InvocationTargetException e) {
+        } catch (InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new NoHunterClassException();
         }
 
         agents.add(hunter);
@@ -80,21 +92,33 @@ public class ExperimentRunner {
 
     }
 
-
+    /**
+     * Uruchamia eksperyment. Wykonuje symulacje w ilości podanej w parametrze.
+     * @throws IOException
+     */
     public void run() throws IOException {
 
         for(int i = 1; i <= simuls ; i++ ) {
-            outputStream.write(new String("simultaion: " + i + "\n").getBytes());
-            Simulation simulation = new Simulation(steps,preys,predators,width,height, outputStream, range);
+            outputStream.write(("simultaion: " + i + "\n").getBytes());
+            Simulation simulation = new Simulation(steps, preys, predators, width, height, outputStream, range);
             simulation.init(agents);
             simulation.run();
             simulations.add(simulation);
-            final int a = i;
-            simulation.getStatistics().stream()
-                    .forEach(b -> b.setSimulation_number(a));
-            statistics.addAll(simulation.getStatistics());
-        }
+            setStatistics(i, simulation);
 
+        }
+    }
+
+    /**
+     * Funkcja ustawia numer symulacji na liście statystyk.
+     * @param simulationNumber Numer symulacji.
+     * @param simulation Symulacja.
+     */
+    public void setStatistics(int simulationNumber, Simulation simulation) {
+        final int number = simulationNumber;
+        simulation.getStatistics().stream()
+                .forEach(b -> b.setSimulation_number(number));
+        statistics.addAll(simulation.getStatistics());
 
     }
 

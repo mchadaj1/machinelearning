@@ -16,6 +16,13 @@ public class Position {
     private AgentType agentType;
     private int agentNumber;
 
+    /**
+     * Konstruktor pozycji.
+     * @param x Współrzędna x.
+     * @param y Współrzędna y.
+     * @param agentType Typ agenta.
+     * @param agentNumber Numer agenta.
+     */
     public Position(int x, int y, AgentType agentType, int agentNumber) {
         this.x = x;
         this.y = y;
@@ -23,6 +30,10 @@ public class Position {
         this.agentNumber = agentNumber;
     }
 
+    /**
+     * Konstruktor kopiujący pozycję.
+     * @param another Pozycja do skopiowania.
+     */
     public Position(Position another) {
         this.x = another.x;
         this.y = another.y;
@@ -61,10 +72,12 @@ public class Position {
         this.agentNumber = agentNumber;
     }
 
-    public boolean inRange2(Position position, int range) {
-        return (Math.abs(this.x - position.getX()) <= range && Math.abs(this.y - position.getY()) <= range);
-    }
-
+    /**
+     * Funkcja sprawdza czy pozycja jest w zasięgu agenta.
+     * @param position Pozycja.
+     * @param range Zasięg.
+     * @return True, jeśli pozycja jest w zasięgu agenta.
+     */
     public boolean inRange(Position position, int range){
         int dx = Math.abs(this.x - position.getX());
         int dy = Math.abs(this.y - position.getY());

@@ -9,11 +9,28 @@ import com.example.hunterPreyPredator.map.Position;
 
 import java.util.Map;
 
+/**
+ * Interfejs klasy agenta.
+ */
 public interface Agent {
 
-    public Position nextStep(Map<String, Object> mapInfo);
-    public void getLastMoveEffect();
-    public AgentType getType();
-    public void finishGame(Map<String, Object> mapInfo);
+    /**
+     * Funkcja wyboru następnego kroku.
+     * @param mapInfo Informacje na temat mapy.
+     * @return Wybrana pozycja.
+     */
+    Position nextStep(Map<String, Object> mapInfo);
+
+    /**
+     * Zwraca typ agenta.
+     * @return Typ agenta.
+     */
+    AgentType getType();
+
+    /**
+     * Funkcja wywoływana po wykonaniu wszystkich ruchów.
+     * @param mapInfo Informacje na temat mapy.
+     */
+    void finishGame(Map<String, Object> mapInfo);
 
 }

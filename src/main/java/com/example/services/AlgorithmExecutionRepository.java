@@ -16,7 +16,7 @@ public interface AlgorithmExecutionRepository extends JpaRepository<AlgorithmExe
 
     /**
      * Funkcja wyszukuje oczekujących, niewykonanych zadań.
-     * @return
+     * @return Lista oczekujących zadań.
      */
     List<AlgorithmExecution> findByPendingTrueAndCompletedFalse();
 

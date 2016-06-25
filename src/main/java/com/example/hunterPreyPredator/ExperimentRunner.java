@@ -94,7 +94,7 @@ public class ExperimentRunner {
 
     /**
      * Uruchamia eksperyment. Wykonuje symulacje w ilości podanej w parametrze.
-     * @throws IOException
+     * @throws IOException W przypadku wystąpienia problemu z zapisem do pliku z logiem.
      */
     public void run() throws IOException {
 

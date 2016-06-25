@@ -160,7 +160,7 @@ public class MyMap {
     /**
      * Funkcja przygotowuje informacje o mapie dla agenta o podanym numerze.
      * @param agentNumber Numer agenta.
-     * @return Mapa <String, Object> z informacjami o mapie dla agenta.
+     * @return Mapa &lt;String, Object&gt; z informacjami o mapie dla agenta.
      */
     public Map<String, Object> getMapInfo(int agentNumber) {
         Map<String, Object> returnMap = new HashMap<>();

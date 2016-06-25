@@ -57,40 +57,31 @@ public class AlgorithmsCronExecutor {
         List<AlgorithmExecution> algorithmExecutions = algorithmExecutionRepository.findByPendingTrueAndCompletedFalse();
         if(!algorithmExecutions.isEmpty()) {
             try {
+
                 algorithmExecution = algorithmExecutions.get(0);
                 String filename = new BigInteger(256, new Random()).toString(32).substring(2,20)+".txt";
                 loggingStream = getOutputStreamForLogging(filename);
                 setAlgorithmPending(filename);
                 logExecutionStarted();
-
-                Class<?> hunterClass = InlineCompiler.getAgent(getReplacesMap(), loggingStream);
-
-                runExperiments(getProblemAttributes(), getMethodAttributes(), hunterClass);
-
-                finishWithSuccess();
-                removeTemporaryFiles(hunterClass.getName());
-            } catch (NumberFormatException e) {
                 try {
-                    log("Nie podano liczby eksperymentów do wykonania\n");
-                    loggingStream.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                    Class<?> hunterClass = InlineCompiler.getAgent(getReplacesMap(), loggingStream);
+                    runExperiments(getProblemAttributes(), getMethodAttributes(), hunterClass);
+                    finishWithSuccess();
+                    removeTemporaryFiles(hunterClass.getName());
+                } catch (NumberFormatException e) {
+                        log("Nie podano liczby eksperymentów do wykonania\n");
+                        loggingStream.close();
+                        finish();
+                } catch (NoHunterClassException e) {
+                        log("Nie udało się utworzyć klasy łowcy\n");
+                        loggingStream.close();
+                        finish();
                 }
-                finish();
-            } catch (IOException e) {
+            } catch(IOException e) {
+                System.out.println("Wystąpił problem z dostępem do pliku log!");
                 e.printStackTrace();
-                finish();
-            } catch (NoHunterClassException e) {
-                try {
-                    log("Nie udało się utworzyć klasy łowcy\n");
-                    loggingStream.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                finish();
             }
-        }
-    }
+    }}
 
     /**
      * Funkcja tworzy OutputStream do logowania przebiegu wykonania dla użytkownika w pliku o podanej nazwie.

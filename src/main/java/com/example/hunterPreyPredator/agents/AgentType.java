@@ -1,6 +1,7 @@
 package com.example.hunterPreyPredator.agents;
 
 /**
+ * Typ agenta.
  * Created by mateusz on 08.04.16.
  */
 public enum AgentType {

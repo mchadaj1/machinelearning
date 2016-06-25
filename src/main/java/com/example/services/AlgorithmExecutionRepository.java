@@ -8,12 +8,23 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.List;
 
 /**
+ * Repozytorium wykonań algorytmów.
  * Created by Mateusz on 2016-03-03.
  */
 @RepositoryRestResource
 public interface AlgorithmExecutionRepository extends JpaRepository<AlgorithmExecution, Long> {
 
-    public List<AlgorithmExecution> findByPendingTrueAndCompletedFalse();
-    public AlgorithmExecution findById(Long id);
+    /**
+     * Funkcja wyszukuje oczekujących, niewykonanych zadań.
+     * @return
+     */
+    List<AlgorithmExecution> findByPendingTrueAndCompletedFalse();
+
+    /**
+     * Funkcja wyszukuje zadania o podanym id.
+     * @param id Id zadania.
+     * @return Zadanie.
+     */
+    AlgorithmExecution findById(Long id);
 
 }

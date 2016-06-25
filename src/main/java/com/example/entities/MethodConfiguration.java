@@ -1,68 +1,38 @@
 package com.example.entities;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.List;
 
 /**
+ * Klasa reprezentująca encję konfiguracji metody uczenia maszynowego.
  * Created by mateusz on 06.03.16.
  */
 @Entity
 @Table(name="method_configurations")
+@NoArgsConstructor
 public class MethodConfiguration {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter
+    @Setter
     private Long id;
-
+    @Getter
+    @Setter
     private String name;
-
+    @Getter
+    @Setter
     private int method_id;
-
-
-
-
-    public Method getMethod() {
-        return method;
-    }
-
-    public void setMethod(Method method) {
-        this.method = method;
-    }
-
     @ManyToOne(optional=false)
     @JoinColumn(name="method_id",referencedColumnName="id" ,insertable = false, updatable = false)
+    @Getter
+    @Setter
     private Method method;
-
-    public MethodConfiguration() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getMethod_id() {
-        return method_id;
-    }
-
-    public void setMethod_id(int method_id) {
-        this.method_id = method_id;
-    }
-
+    @Getter
     @OneToMany(mappedBy = "methodConfigurationId")
-    public List<MethodParamValue> methodParamValues;
-
-
-
+    private List<MethodParamValue> methodParamValues;
 }

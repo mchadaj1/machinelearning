@@ -1,86 +1,52 @@
 package com.example.entities;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import javax.persistence.*;
 
 /**
+ * Klasa reprezentująca encję parametru problemu.
  * Created by mateusz on 04.03.16.
  */
 @Entity
 @Table(name="problem_params")
+@NoArgsConstructor
+@ToString
 public class ProblemParam {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter
+    @Setter
     private Long id;
-
+    @Getter
+    @Setter
     private String name;
-
+    @Getter
+    @Setter
     @Column(updatable = false,name="problems_id")
     private Long problemsid;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "ENUM('INT', 'DOUBLE', 'STRING','BOOLEAN')")
+    @Getter
+    @Setter
+    private Type type;
+    @ManyToOne
+    @JoinColumn(name = "problems_id",referencedColumnName = "id",nullable = false,updatable = false,insertable = false)
+    @Getter
+    @Setter
+    private Problem problem;
 
-    public enum Type
-    {
+    /**
+     * Typ wyliczeniowy odpowiadający typowi parametru w bazie danych.
+     */
+    private enum Type {
         INT,DOUBLE,STRING,BOOLEAN;
     }
 
-
-    public Type getType() {
-        return type;
-    }
-
-
-
-    public void setType(Type type) {
-        this.type = type;
-
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Long getProblemsid() {
-        return problemsid;
-    }
-
-    public void setProblemsid(Long problems_id) {
-        this.problemsid = problems_id;
-    }
-
-    //    @EmbeddedId
-//    PrimaryKey primaryKey;
-
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "ENUM('INT', 'DOUBLE', 'STRING','BOOLEAN')")
-    private Type type;
-
-    @ManyToOne
-    @JoinColumn(name = "problems_id",referencedColumnName = "id",nullable = false,updatable = false,insertable = false)
-    public Problem problem;
-
-
-    @Override
-    public String toString() {
-        return "ProblemParam{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", problemsid=" + problemsid +
-                ", type=" + type +
-                ", problem=" + problem +
-                '}';
-    }
 }
 
 

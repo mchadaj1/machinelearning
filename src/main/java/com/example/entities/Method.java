@@ -1,140 +1,58 @@
 package com.example.entities;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 
 /**
+ * Klasa reprezentująca encję metody uczenia maszynowego.
  * Created by mateusz on 05.03.16.
  */
 @Entity
 @Table(name="methods")
+@NoArgsConstructor
 public class Method {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter
+    @Setter
     private Long id;
-
+    @Getter
+    @Setter
     private Long user_id;
-
-    public Long getProblem_id() {
-        return problem_id;
-    }
-
-    public void setProblem_id(Long problem_id) {
-        this.problem_id = problem_id;
-    }
-
+    @Getter
+    @Setter
     private Long problem_id;
-
+    @Getter
+    @Setter
     private String name;
-
+    @Getter
+    @Setter
     private String description;
-
+    @Getter
+    @Setter
     private boolean ispublic;
-
+    @Getter
+    @Setter
     private String code;
-
+    @Getter
+    @Setter
     private String globals;
-
+    @Getter
+    @Setter
     private String imports;
-
+    @Getter
+    @Setter
     private String constructorcode;
-
+    @Getter
+    @Setter
     private String finishgame;
-
-
-    public Method() {
-    }
-
-    public String getFinishgame() {
-        return finishgame;
-    }
-
-    public void setFinishgame(String finishgame) {
-        this.finishgame = finishgame;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getGlobals() {
-        return globals;
-    }
-
-    public void setGlobals(String globals) {
-        this.globals = globals;
-    }
-
-    public String getImports() {
-        return imports;
-    }
-
-    public void setImports(String imports) {
-        this.imports = imports;
-    }
-
-    public String getConstructorcode() {
-        return constructorcode;
-    }
-
-    public void setConstructorcode(String constructorcode) {
-        this.constructorcode = constructorcode;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(Long user_id) {
-        this.user_id = user_id;
-    }
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public boolean ispublic() {
-        return ispublic;
-    }
-
-    public void setIspublic(boolean ispublic) {
-        this.ispublic = ispublic;
-    }
-
-
-    public Problem getProblem() {
-        return problem;
-    }
-
-    public void setProblem(Problem problem) {
-        this.problem = problem;
-    }
-
     @ManyToOne(optional=false)
     @JoinColumn(name="problem_id",referencedColumnName="id" ,insertable = false, updatable = false)
+    @Getter
+    @Setter
     private Problem problem;
+
 }

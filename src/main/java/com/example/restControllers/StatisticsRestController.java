@@ -61,15 +61,15 @@ public class StatisticsRestController {
         MethodConfiguration methodConfiguration = methodConfigurationRepository.findById(algorithmExecution.getMethodConfigurationId());
 
         statisticDTO.name = "Konfiguracja problemu: " +problemConfiguration.getName() + " Konfiguracja metody: "+methodConfiguration.getName();
-        List<ProblemParamValue> problemParamValues = problemConfiguration.problemParamValues;
+        List<ProblemParamValue> problemParamValues = problemConfiguration.getProblemParamValues();
         int experiments = 0;
         int simulations = 0;
         for(ProblemParamValue problemParamValue : problemParamValues) {
-            statisticDTO.insertParam(problemParamValue.problem_param.getName(),problemParamValue.getValue());
-            if(Objects.equals(problemParamValue.problem_param.getName(),"experiments")) {
+            statisticDTO.insertParam(problemParamValue.getProblem_param().getName(),problemParamValue.getValue());
+            if(Objects.equals(problemParamValue.getProblem_param().getName(),"experiments")) {
                 experiments = Integer.parseInt(problemParamValue.getValue());
             }
-            else if(Objects.equals(problemParamValue.problem_param.getName(),"simulations")) {
+            else if(Objects.equals(problemParamValue.getProblem_param().getName(),"simulations")) {
                 simulations = Integer.parseInt(problemParamValue.getValue());
             }
         }
@@ -142,7 +142,7 @@ public class StatisticsRestController {
         MethodConfiguration methodConfiguration = methodConfigurationRepository.findById(algorithmExecution.getMethodConfigurationId());
 
         statisticDTO.name = "Konfiguracja problemu: " +problemConfiguration.getName() + " Konfiguracja metody: "+methodConfiguration.getName();
-        List<ProblemParamValue> problemParamValues = problemConfiguration.problemParamValues;
+        List<ProblemParamValue> problemParamValues = problemConfiguration.getProblemParamValues();
         int experiments = 0;
         int simulations = 0;
 
@@ -150,23 +150,23 @@ public class StatisticsRestController {
         double killPoints = 0;
         double movePoints = 0;
         int steps = 0;
-        for (MethodParamValue methodParamValue : methodConfiguration.methodParamValues) {
-            if(Objects.equals(methodParamValue.method_param.getName(), "deathPoints")) {
+        for (MethodParamValue methodParamValue : methodConfiguration.getMethodParamValues()) {
+            if(Objects.equals(methodParamValue.getMethod_param().getName(), "deathPoints")) {
                 deathPoints = Double.parseDouble(methodParamValue.getValue());
-            } else if (Objects.equals(methodParamValue.method_param.getName(), "killPoints")) {
+            } else if (Objects.equals(methodParamValue.getMethod_param().getName(), "killPoints")) {
                 killPoints = Double.parseDouble(methodParamValue.getValue());
-            } else if (Objects.equals(methodParamValue.method_param.getName(), "movePoints")) {
+            } else if (Objects.equals(methodParamValue.getMethod_param().getName(), "movePoints")) {
                 movePoints = Double.parseDouble(methodParamValue.getValue());
             }
         }
         for(ProblemParamValue problemParamValue : problemParamValues) {
-            statisticDTO.insertParam(problemParamValue.problem_param.getName(),problemParamValue.getValue());
-            if(Objects.equals(problemParamValue.problem_param.getName(),"experiments")) {
+            statisticDTO.insertParam(problemParamValue.getProblem_param().getName(),problemParamValue.getValue());
+            if(Objects.equals(problemParamValue.getProblem_param().getName(),"experiments")) {
                 experiments = Integer.parseInt(problemParamValue.getValue());
             }
-            else if(Objects.equals(problemParamValue.problem_param.getName(),"simulations")) {
+            else if(Objects.equals(problemParamValue.getProblem_param().getName(),"simulations")) {
                 simulations = Integer.parseInt(problemParamValue.getValue());
-            } else if(Objects.equals(problemParamValue.problem_param.getName(), "steps")) {
+            } else if(Objects.equals(problemParamValue.getProblem_param().getName(), "steps")) {
                 steps = Integer.parseInt(problemParamValue.getValue());
             }
         }

@@ -5,11 +5,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Created by mateusz on 04.03.16.
- */
-
-/**
  * Kontroler serwujący aplikację użytkownikowi.
+ * Created by mateusz on 04.03.16.
  */
 @Controller
 public class Welcome {

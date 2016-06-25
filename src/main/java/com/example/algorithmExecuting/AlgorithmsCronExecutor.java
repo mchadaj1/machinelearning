@@ -117,9 +117,9 @@ public class AlgorithmsCronExecutor {
 
         log("Argumenty problemu:\n");
         for(ProblemParamValue problemParamValue : problemParamValues) {
-            log((problemParamValue.problem_param
+            log((problemParamValue.getProblem_param()
                     .getName() + " " + problemParamValue.getValue() + "\n"));
-            attributes.put(problemParamValue.problem_param.getName(),problemParamValue.getValue());
+            attributes.put(problemParamValue.getProblem_param().getName(),problemParamValue.getValue());
         }
         return attributes;
     }
@@ -136,8 +136,8 @@ public class AlgorithmsCronExecutor {
                 .findByMethodConfigurationId(algorithmExecution.getMethodConfigurationId());
         log("Argumenty metody:\n");
         for (MethodParamValue methodParamValue : methodParamValues) {
-            log((methodParamValue.method_param.getName() + " " + methodParamValue.getValue() + "\n"));
-            attributes.put(methodParamValue.method_param.getName(), methodParamValue.getValue());
+            log((methodParamValue.getMethod_param().getName() + " " + methodParamValue.getValue() + "\n"));
+            attributes.put(methodParamValue.getMethod_param().getName(), methodParamValue.getValue());
         }
         return attributes;
     }

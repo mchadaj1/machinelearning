@@ -1,52 +1,30 @@
 package com.example.entities;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.List;
 
 /**
+ * Klasa reprezentująca encję problemu.
  * Created by Mateusz on 2016-03-03.
  */
 @Entity
 @Table(name="problems")
+@NoArgsConstructor
 public class Problem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter
+    @Setter
     private Long id;
-
+    @Getter
+    @Setter
     private String name;
-
+    @Getter
+    @Setter
     private String description;
-    @OneToMany(mappedBy = "problem")
-    private List<ProblemConfiguration> problem_configurations;
-
-    @OneToMany(mappedBy = "problem")
-    private List<Method> methods;
-
-    public Problem() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

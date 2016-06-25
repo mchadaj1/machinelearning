@@ -10,16 +10,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * Created by mateusz on 18.05.16.
- */
-
-/**
  * Kontroler serwujący użytkownikowi plik z opisem przebiegu symulacji
+ * Created by mateusz on 18.05.16.
  */
 @Controller
 public class FileDownload {
@@ -28,9 +24,7 @@ public class FileDownload {
     AlgorithmExecutionRepository algorithmExecutionRepository;
 
     @RequestMapping(value = "/files/{id}", method = RequestMethod.GET)
-    public void getFile(
-            @PathVariable("id") Long id,
-            HttpServletResponse response) {
+    public void getFile(@PathVariable("id") Long id, HttpServletResponse response) {
         try {
 
             AlgorithmExecution algorithmExecution = algorithmExecutionRepository.findById(id);
@@ -41,8 +35,7 @@ public class FileDownload {
             response.setHeader("Content-Disposition", "attachment; filename=logs.txt");
             response.setCharacterEncoding("UTF-8");
         } catch (IOException ex) {
-//            ex.printStackTrace();
-            //throw new RuntimeException("IOError writing file to output stream");
+            ex.printStackTrace();
         }
 
     }

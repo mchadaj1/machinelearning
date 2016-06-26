@@ -297,7 +297,7 @@ public class StatisticsRestController {
             }
         }
     }
-    
+
     /**
      * Funkcja obsługuje wyjątki związane z błędem bazy danych.
      * @param e Wyjątek.

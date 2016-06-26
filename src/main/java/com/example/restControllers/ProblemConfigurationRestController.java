@@ -3,6 +3,7 @@ package com.example.restControllers;
 import com.example.entities.ProblemConfiguration;
 import com.example.services.ProblemConfigurationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -105,6 +106,17 @@ public class ProblemConfigurationRestController {
         }
         problem_configurationRepository.save(problem_configuration);
         return new ResponseEntity<>(problem_configuration,HttpStatus.OK);
+    }
+
+    /**
+     * Funkcja obsługuje wyjątki związane z błędem bazy danych.
+     * @param e Wyjątek.
+     * @return Status Bad Request.
+     */
+    @ExceptionHandler
+    @ResponseBody
+    private ResponseEntity<ProblemConfiguration> handleException(DataAccessException e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
 }

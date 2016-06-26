@@ -3,11 +3,13 @@ package com.example.restControllers;
 import com.example.entities.Problem;
 import com.example.services.ProblemsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Kontroler restowy pozwalający na zarządzanie problemami (zadaniami) przez protokół HTTP.
@@ -102,5 +104,16 @@ public class ProblemsRestController {
         }
         problemsRepository.save(problem);
         return new ResponseEntity<>(problem,HttpStatus.OK);
+    }
+
+    /**
+     * Funkcja obsługuje wyjątki związane z błędem bazy danych.
+     * @param e Wyjątek.
+     * @return Status Bad Request.
+     */
+    @ExceptionHandler
+    @ResponseBody
+    private ResponseEntity<Problem> handleException(DataAccessException e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

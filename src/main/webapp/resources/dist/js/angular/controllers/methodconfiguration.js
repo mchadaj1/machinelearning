@@ -72,9 +72,11 @@ angular.module('myApp').controller('methodconfigurationCtrl',function ($scope,$l
      */
     $scope.add = function () {
 
-        Method_configuration.createMethod_configuration($scope.configuration).success(function(data,success){
+        Method_configuration.createMethod_configuration($scope.configuration).then(function(data,success){
 
             $location.path("/methodconfiguration");
+        }, function (error,status) {
+            alert("Operacja nie powiodła się! " + error.statusText);
         })
 
     };

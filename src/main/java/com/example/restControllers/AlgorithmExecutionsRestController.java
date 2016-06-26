@@ -3,8 +3,10 @@ package com.example.restControllers;
 import com.example.entities.AlgorithmExecution;
 import com.example.services.AlgorithmExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -70,5 +72,16 @@ public class AlgorithmExecutionsRestController {
         algorithmExecutionRepository.save(algorithmExecution);
         return new ResponseEntity<>(algorithmExecution, HttpStatus.OK);
 
+    }
+
+    /**
+     * Funkcja obsługuje wyjątki związane z błędem bazy danych.
+     * @param e Wyjątek.
+     * @return Status Bad Request.
+     */
+    @ExceptionHandler
+    @ResponseBody
+    private ResponseEntity<AlgorithmExecution> handleException(DataAccessException e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

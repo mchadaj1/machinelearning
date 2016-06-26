@@ -64,9 +64,11 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
      * Funkcja pozwala na dodanie konfiguracji.
      */
     $scope.add = function () {
-        Problem_configuration.createProblem_configuration($scope.configuration).success(function(data,success){
+        Problem_configuration.createProblem_configuration($scope.configuration).then(function(data,success){
 
             $location.path("/configuration");
+        }, function(error, status) {
+            alert("Operacja nie powiodła się! " + error.statusText);
         })
 
     };

@@ -7,14 +7,11 @@ import com.example.services.MethodConfigurationRepository;
 import com.example.services.ProblemConfigurationRepository;
 import com.example.services.StatisticRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.Inheritance;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -299,6 +296,17 @@ public class StatisticsRestController {
                 earnedPoints.get(i).set(j,points);
             }
         }
+    }
+    
+    /**
+     * Funkcja obsługuje wyjątki związane z błędem bazy danych.
+     * @param e Wyjątek.
+     * @return Status Bad Request.
+     */
+    @ExceptionHandler
+    @ResponseBody
+    private ResponseEntity<Statistic> handleException(DataAccessException e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }
 

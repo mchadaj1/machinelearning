@@ -54,7 +54,7 @@ angular.module('myApp').controller('problemCtrl',function ($scope,$location,$rou
      * Funkcja pozwala na dodanie problemu.
      */
     $scope.add = function () {
-        Problem.createProblem($scope.problem).success(function (data, status) {
+        Problem.createProblem($scope.problem).then(function (data, status) {
           $scope.problem=null;
 
 

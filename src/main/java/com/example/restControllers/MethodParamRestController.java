@@ -3,6 +3,7 @@ package com.example.restControllers;
 import com.example.entities.MethodParam;
 import com.example.services.MethodParamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,8 +53,9 @@ public class MethodParamRestController {
     public ResponseEntity<MethodParam> delete(@PathVariable Long id)
     {
         MethodParam method_param = method_paramRepository.findById(id);
-        if(method_param==null)
+        if(method_param==null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         method_paramRepository.delete(method_param);
         return new ResponseEntity<>(method_param,HttpStatus.OK);
     }
@@ -66,11 +68,23 @@ public class MethodParamRestController {
     @RequestMapping(value = "/",method = RequestMethod.POST)
     public ResponseEntity<MethodParam> create(@RequestBody(required = false) MethodParam method_param)
     {
-        if(method_param==null)
+        if(method_param==null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         method_paramRepository.save(method_param);
         return new ResponseEntity<>(method_param,HttpStatus.OK);
 
+    }
+
+    /**
+     * Funkcja obsługuje wyjątki związane z błędem bazy danych.
+     * @param e Wyjątek.
+     * @return Status Bad Request.
+     */
+    @ExceptionHandler
+    @ResponseBody
+    private ResponseEntity<MethodParam> handleException(DataAccessException e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
 

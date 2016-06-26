@@ -3,6 +3,7 @@ package com.example.restControllers;
 import com.example.entities.ProblemParamValue;
 import com.example.services.ProblemParamValueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,5 +59,16 @@ public class ProblemParamValueRestController {
             paramValue = problem_param_valueRepository.save(existingParamValue);
         }
         return new ResponseEntity<>(paramValue,HttpStatus.OK);
+    }
+
+    /**
+     * Funkcja obsługuje wyjątki związane z błędem bazy danych.
+     * @param e Wyjątek.
+     * @return Status Bad Request.
+     */
+    @ExceptionHandler
+    @ResponseBody
+    private ResponseEntity<ProblemParamValue> handleException(DataAccessException e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

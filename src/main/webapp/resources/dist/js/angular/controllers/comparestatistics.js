@@ -1,4 +1,5 @@
 /**
+ * Kontroler dostarczający statystyki porównywania metod.
  * Created by mateusz on 23.05.16.
  */
 angular.module('myApp').controller('comparestatisticsCtrl',function ($scope, $q, $location,$routeParams,Statistic,Problem_configuration,Algorithm_execution) {

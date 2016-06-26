@@ -1,4 +1,5 @@
 /**
+ * Kontroler dostarczający statystyki punktowe.
  * Created by mateusz on 14.05.16.
  */
 angular.module('myApp').controller('pointstatisticsCtrl',function ($scope,$location,$routeParams,Statistic,Problem_configuration,Algorithm_execution) {

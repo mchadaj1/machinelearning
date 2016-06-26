@@ -1,4 +1,5 @@
 /**
+ * Główny kontroler.
  * Created by mateusz on 22.03.16.
  */
 

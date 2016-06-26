@@ -1,4 +1,5 @@
 /**
+ * Kontroler pozwalający na zarządzanie konfiguracjami metod.
  * Created by mateusz on 04.03.16.
  */
 

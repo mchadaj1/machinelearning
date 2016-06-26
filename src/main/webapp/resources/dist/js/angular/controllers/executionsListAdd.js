@@ -1,4 +1,5 @@
 /**
+ * Kontroler pozwalający na dodawanie wykonania do listy algorytmów.
  * Created by mateusz on 04.03.16.
  */
 

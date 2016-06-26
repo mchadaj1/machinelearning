@@ -1,4 +1,5 @@
 /**
+ * Kontroler pozwalający na zarządzanie listą wykonań algorytmów.
  * Created by mateusz on 04.03.16.
  */
 

@@ -1,4 +1,5 @@
 /**
+ * Kontroler dostarczający statystyki zabijania ofiar.
  * Created by mateusz on 14.05.16.
  */
 angular.module('myApp').controller('statisticsCtrl',function ($scope,$location,$routeParams,Statistic,Problem_configuration,Algorithm_execution) {

@@ -8,13 +8,19 @@ angular.module('myApp').controller('methodconfigurationCtrl',function ($scope,$l
     $scope.configurations = [];
     $scope.configuration = {};
     $scope.methods = [];
-    //$scope.configuration = {};
+    /**
+     * Funkcja pobiera konfiguracje metod.
+     */
     loadConfigs = function() {
         Method_configuration.getMethod_configurations().success(function (data, status) {
             $scope.configurations = data;
         });
     };
 
+    /**
+     * Funkcja pobiera parametry metody.
+     * @param id Id metody.
+     */
     loadMethodParams = function(id){
         Method_param.getMethod_params(id).success(function(data,status){
             $scope.method_params = data;
@@ -32,7 +38,9 @@ angular.module('myApp').controller('methodconfigurationCtrl',function ($scope,$l
             console.log($scope.method_params);
         })
     }
-
+    /**
+     * Funkcja ustawia wartości początkowe.
+     */
     init = function () {
         loadConfigs();
         //$scope.newproblemparam.primaryKey.problems_id="";
@@ -59,7 +67,9 @@ angular.module('myApp').controller('methodconfigurationCtrl',function ($scope,$l
     };
     init();
 
-
+    /**
+     * Funkcja pozwala na dodanie konfiguracji metody.
+     */
     $scope.add = function () {
 
         Method_configuration.createMethod_configuration($scope.configuration).success(function(data,success){
@@ -68,14 +78,32 @@ angular.module('myApp').controller('methodconfigurationCtrl',function ($scope,$l
         })
 
     };
+    /**
+     * Funkcja pozwala na usunięcie konfiguracji metody.
+     * @param id Id konfiguracji.
+     */
     $scope.delete = function(id){
-
-        Method_configuration.deleteConfiguration(id).success(function(data,status){
+        var configs = $scope.configurations.length;
+        Method_configuration.deleteConfiguration(id).then(function(data,status){
             Method_configuration.getMethod_configurations().success(function (data, status) {
                 $scope.configurations = data;
             });
+        },function(error,status) {
+            Method_configuration.getMethod_configurations().success(function (data, status) {
+                $scope.configurations = data;
+                if(configs == $scope.configurations.length) {
+                    alert("Operacja nie powiodła się! " + error.statusText);
+                }
+            });
+
+
         })
     };
+    /**
+     * Funkcja pozwala na edycję konfiguracji.
+     * @param id Id konfiguracji.
+     * @param configuration Konfiguracja.
+     */
     $scope.edit = function(id,configuration){
 
         var id = $routeParams.id;
@@ -91,8 +119,10 @@ angular.module('myApp').controller('methodconfigurationCtrl',function ($scope,$l
     };
 
 
-
-
+    /**
+     * Funkcja pozwala na aktualizację wartości parametru.
+     * @param method_param Parametr metody.
+     */
     $scope.editValue = function(method_param){
         //console.log(problem_param);
         Method_param.setValue(method_param,$scope.configuration.id).success(function (data,status) {

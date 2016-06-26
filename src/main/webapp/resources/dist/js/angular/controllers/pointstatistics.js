@@ -6,6 +6,10 @@ angular.module('myApp').controller('pointstatisticsCtrl',function ($scope,$locat
 
    $scope.experiments = [];
 
+    /**
+     * Funkcja pobiera statystyki i dostarcza do widoku.
+     * @param id
+     */
     var getStatistics = function(id) {
         Statistic.getPointStatistics(id).success(function(data,status){
            for(var i = 0; i < data.experiments; i++) {
@@ -30,6 +34,9 @@ angular.module('myApp').controller('pointstatisticsCtrl',function ($scope,$locat
 
         })
     }
+    /**
+     * Funkcja ustawia wartości początkowe.
+     */
     var init = function() {
         getStatistics($routeParams.id);
         $scope.id = $routeParams.id;

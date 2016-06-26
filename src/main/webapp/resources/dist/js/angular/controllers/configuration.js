@@ -8,12 +8,19 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
     $scope.configurations = [];
     $scope.problems = [];
 
+    /**
+     * Funkcja pobiera konfiguracje.
+     */
     loadConfigs = function() {
         Problem_configuration.getProblem_configurations().success(function (data, status) {
             $scope.configurations = data;
         });
     };
 
+    /**
+     * Funkcja pobiera parametry problemu.
+     * @param id Id problemu.
+     */
     loadProblem_params = function(id){
         Problem_param.getProblem_params(id).success(function(data,status){
             $scope.problem_params = data;
@@ -26,18 +33,16 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
                     problem_param.value = data.value;
 
             })
-
-
-
             })
             console.log($scope.problem_params);
         })
     }
 
+    /**
+     * Funkcja inicjuje wartości początkowe.
+     */
     init = function () {
         loadConfigs();
-        //$scope.newproblemparam.primaryKey.problems_id="";
-        //$scope.newproblemparam.primaryKey.name="";
         Problem.getProblems().success(function (data, status) {
             $scope.problems = data;
             console.log($scope.problems);
@@ -55,7 +60,9 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
     };
     init();
 
-
+    /**
+     * Funkcja pozwala na dodanie konfiguracji.
+     */
     $scope.add = function () {
         Problem_configuration.createProblem_configuration($scope.configuration).success(function(data,success){
 
@@ -65,12 +72,21 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
     };
     $scope.delete = function(id){
 
-        Problem_configuration.deleteConfiguration(id).success(function(data,status){
+        Problem_configuration.deleteConfiguration(id).then(function(data,status) {
             Problem_configuration.getProblem_configurations().success(function (data, status) {
                 $scope.configurations = data;
             });
+        },function(error,status) {
+            Problem_configuration.getProblem_configurations().success(function (data, status) {
+                $scope.configurations = data;
+            })
         })
     };
+    /**
+     * Funkcja pozwala na edycję danych konfiguracji.
+     * @param id Id konfiguracji.
+     * @param configuration Konfiguracja.
+     */
     $scope.edit = function(id,configuration){
 
         var id = $routeParams.id;
@@ -86,7 +102,9 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
     };
 
 
-
+    /**
+     * Funkcja pozwala na dodanie parametru do konfiguracji.
+     */
     $scope.addParam = function(){
 
         $scope.newproblemparam.primaryKey.problems_id=$scope.problem.id;
@@ -97,6 +115,11 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
             $scope.newproblemparam.type="";
         })
     };
+
+    /**
+     * FUnkcja pozwala na usunięcie parametru.
+     * @param name
+     */
     $scope.deleteParam = function(name){
         console.log(name);
         Problem_param.deleteParam($scope.problem.id,name).success(function(data,status){
@@ -104,6 +127,11 @@ angular.module('myApp').controller('configurationCtrl',function ($scope,$locatio
         })
 
     };
+
+    /**
+     * FUnkcja pozwala na edycję wartości parametru.
+     * @param problem_param
+     */
     $scope.editValue = function(problem_param){
         //console.log(problem_param);
         Problem_param.setValue(problem_param,$scope.configuration.id).success(function (data,status) {

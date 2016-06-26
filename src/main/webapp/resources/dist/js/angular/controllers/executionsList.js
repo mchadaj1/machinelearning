@@ -9,12 +9,18 @@ angular.module('myApp').controller('executionsListCtrl',function ($scope,$locati
     $scope.method_configurations = [];
     $scope.problem_configurations = [];
 
+    /**
+     * Funkcja ładuje wykonania z bazy danych.
+     */
     loadExecutions = function() {
         Algorithm_execution.getExecutions().success(function (data, status) {
             $scope.executions = data;
             console.log(data);
         });
     };
+    /**
+     * Funkcja ładuje konfiguracje problemów.
+     */
     loadProblem_configurations = function() {
         Problem_configuration.getProblem_configurations().success(function(data,status){
             console.log("aa");
@@ -22,14 +28,20 @@ angular.module('myApp').controller('executionsListCtrl',function ($scope,$locati
             console.log(data);
         })
     }
+    /**
+     * Funkcja ładuje konfiguracje metod.
+     */
     loadMethod_configurations = function() {
         Method_configuration.getMethod_configurations().success(function(data,status){
             $scope.method_configurations = data;
             console.log(data);
         })
     }
+
+    /**
+     * Funkcja ustawia wartości początkowe.
+     */
     init = function() {
-        console.log("bbssb");
         loadExecutions();
         loadMethod_configurations();
         loadProblem_configurations();
@@ -39,8 +51,12 @@ angular.module('myApp').controller('executionsListCtrl',function ($scope,$locati
     $scope.go = function ( path ) {
         $location.path( path );
     };
+
+    /**
+     * Funkcja pozwala na porównanie metod.
+     */
     $scope.compare = function () {
-        console.log($scope.executions);
+
         var argument = "";
         for ( var i = 0; i<  $scope.executions.length; i++) {
             var execution = $scope.executions[i];

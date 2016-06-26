@@ -21,6 +21,10 @@ angular.module('myApp').controller('comparestatisticsCtrl',function ($scope, $q,
     }
     var arrayLength;
     var minsimulations = -1;
+    /**
+     * Funkcja rekurencyjnie pobiera statystyki i umieszcza je w widoku.
+     * @param array
+     */
     var loadStatistics = function(array) {
         if(array.length == 0) {
             for(var j = 0; j < arrayLength; j ++ ) {
@@ -50,7 +54,9 @@ angular.module('myApp').controller('comparestatisticsCtrl',function ($scope, $q,
         }
     }
 
-
+    /**
+     * Funkcja inicjuje wartości początkowe.
+     */
     var init = function() {
         $scope.source = $routeParams.array;
         var argument = $routeParams.array;

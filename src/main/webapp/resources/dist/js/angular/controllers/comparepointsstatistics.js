@@ -21,6 +21,10 @@ angular.module('myApp').controller('comparepointsstatisticsCtrl',function ($scop
     }
     var arrayLength;
     var minsimulations = -1;
+    /**
+     * Funkcja rekurencyjnie pobiera statystyki i umieszcza w widoku.
+     * @param array
+     */
     var loadStatistics = function(array) {
         if(array.length == 0) {
             for(var j = 0; j < arrayLength; j ++ ) {
@@ -51,6 +55,9 @@ angular.module('myApp').controller('comparepointsstatisticsCtrl',function ($scop
     }
 
 
+    /**
+     * Funkcja inicjuje widok.
+     */
     var init = function() {
         $scope.source = $routeParams.array;
         var argument = $routeParams.array;

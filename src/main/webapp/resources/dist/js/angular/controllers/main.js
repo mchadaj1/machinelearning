@@ -5,6 +5,10 @@
 
 angular.module('myApp').controller('mainCtrl', function ($scope, $http,Menu){
 
+    /**
+     * Menu główne
+     * @type {*[]}
+     */
     $scope.mainMenu = [
         {
             'link':'/problem',

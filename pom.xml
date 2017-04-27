@@ -6,7 +6,7 @@
     <groupId>com.example</groupId>
     <artifactId>machinelearning</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <name>machinelearning</name>
     <description>First Version</description>
